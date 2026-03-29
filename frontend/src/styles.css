@@ -110,6 +110,11 @@ body {
   padding: 12px;
 }
 
+.question.missing {
+  border-color: #ef4444;
+  background: #fff1f2;
+}
+
 .q-title {
   margin-bottom: 8px;
 }
@@ -154,6 +159,12 @@ body {
 
 .error {
   color: #b91c1c;
+}
+
+.warn {
+  margin-top: 8px;
+  color: #b91c1c;
+  font-size: 13px;
 }
 
 .footer {

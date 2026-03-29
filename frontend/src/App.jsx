@@ -13,6 +13,7 @@ export default function App() {
   const [selectedById, setSelectedById] = useState({});
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [missingIds, setMissingIds] = useState([]);
   const [studentInfo, setStudentInfo] = useState({
     student_id: "",
     full_name: "",
@@ -38,6 +39,7 @@ export default function App() {
         return;
       }
       setError("");
+      setMissingIds([]);
       setStatus("loading");
       const data = await fetchQuestions();
       setQuestions(data);
@@ -52,11 +54,25 @@ export default function App() {
 
   function choose(questionId, option) {
     setSelectedById((prev) => ({ ...prev, [questionId]: option }));
+    if (error) setError("");
+    setMissingIds((prev) => prev.filter((id) => id !== questionId));
   }
 
   async function submit() {
     try {
+      const missing = questions
+        .filter((q) => !selectedById[q.id])
+        .map((q) => q.id);
+
+      if (missing.length > 0) {
+        setMissingIds(missing);
+        setError(`Bạn chưa làm xong, còn ${missing.length} câu chưa chọn đáp án.`);
+        const el = document.querySelector(`[data-qid="${missing[0]}"]`);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
       setError("");
+      setMissingIds([]);
       setStatus("submitting");
       const answers = questions
         .map((q) => ({
@@ -80,6 +96,7 @@ export default function App() {
     setSelectedById({});
     setResult(null);
     setError("");
+    setMissingIds([]);
   }
 
   return (
@@ -173,7 +190,11 @@ export default function App() {
 
           <div className="questions">
             {questions.map((q, idx) => (
-              <div key={q.id} className="question">
+              <div
+                key={q.id}
+                data-qid={q.id}
+                className={`question ${missingIds.includes(q.id) ? "missing" : ""}`}
+              >
                 <div className="q-title">
                   <b>
                     Câu {idx + 1}:</b> {q.question}
@@ -192,6 +213,10 @@ export default function App() {
                     </label>
                   ))}
                 </div>
+
+                {missingIds.includes(q.id) && (
+                  <div className="warn">Bạn chưa chọn đáp án cho câu này.</div>
+                )}
               </div>
             ))}
           </div>
@@ -199,6 +224,7 @@ export default function App() {
           <button className="btn" onClick={submit}>
             Nộp bài
           </button>
+          {error && <p className="error">{error}</p>}
         </div>
       )}
 
