@@ -1,20 +1,42 @@
 import React, { useMemo, useState } from "react";
 import { fetchQuestions, submitAnswers } from "./api.js";
 
+function getTodayLocalISODate() {
+  const now = new Date();
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 10);
+}
+
 export default function App() {
   const [status, setStatus] = useState("idle"); // idle | loading | quiz | submitting | done | error
   const [questions, setQuestions] = useState([]);
   const [selectedById, setSelectedById] = useState({});
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [studentInfo, setStudentInfo] = useState({
+    student_id: "",
+    full_name: "",
+    class_name: "",
+    exam_date: getTodayLocalISODate()
+  });
 
   const totalSelected = useMemo(
     () => Object.values(selectedById).filter(Boolean).length,
     [selectedById]
   );
 
+  const canStart =
+    studentInfo.student_id.trim() &&
+    studentInfo.full_name.trim() &&
+    studentInfo.class_name.trim() &&
+    studentInfo.exam_date;
+
   async function start() {
     try {
+      if (!canStart) {
+        setError("Vui lòng nhập đầy đủ: Mã SV, Họ tên, Lớp, Ngày làm bài.");
+        return;
+      }
       setError("");
       setStatus("loading");
       const data = await fetchQuestions();
@@ -64,13 +86,63 @@ export default function App() {
     <div className="container">
       <header className="header">
         <h1>Quiz App</h1>
-        <p className="muted">FastAPI + React (demo tối giản)</p>
+        <p className="muted">FastAPI + React </p>
       </header>
 
       {status === "idle" && (
         <div className="card">
-          <p>Bấm bắt đầu để làm bài (5–10 câu).</p>
-          <button className="btn" onClick={start}>
+          <h2>Thông tin làm bài</h2>
+          <p className="muted">Nhập thông tin trước khi bắt đầu làm bài.</p>
+
+          <div className="form">
+            <label className="field">
+              <div className="label">Mã sinh viên</div>
+              <input
+                value={studentInfo.student_id}
+                onChange={(e) =>
+                  setStudentInfo((prev) => ({ ...prev, student_id: e.target.value }))
+                }
+                placeholder="VD: 22123456"
+              />
+            </label>
+
+            <label className="field">
+              <div className="label">Họ và tên</div>
+              <input
+                value={studentInfo.full_name}
+                onChange={(e) =>
+                  setStudentInfo((prev) => ({ ...prev, full_name: e.target.value }))
+                }
+                placeholder="VD: Nguyễn Văn A"
+              />
+            </label>
+
+            <label className="field">
+              <div className="label">Lớp</div>
+              <input
+                value={studentInfo.class_name}
+                onChange={(e) =>
+                  setStudentInfo((prev) => ({ ...prev, class_name: e.target.value }))
+                }
+                placeholder="VD: CNTT-K20"
+              />
+            </label>
+
+            <label className="field">
+              <div className="label">Ngày làm bài</div>
+              <input
+                type="date"
+                value={studentInfo.exam_date}
+                onChange={(e) =>
+                  setStudentInfo((prev) => ({ ...prev, exam_date: e.target.value }))
+                }
+              />
+            </label>
+          </div>
+
+          {error && <p className="error">{error}</p>}
+
+          <button className="btn" onClick={start} disabled={!canStart}>
             Bắt đầu
           </button>
         </div>
@@ -86,7 +158,13 @@ export default function App() {
         <div className="card">
           <div className="row space">
             <div className="muted">
-              Số câu: <b>{questions.length}</b> — Đã chọn: <b>{totalSelected}</b>
+              <div>
+                SV: <b>{studentInfo.student_id}</b> — <b>{studentInfo.full_name}</b> — Lớp:{" "}
+                <b>{studentInfo.class_name}</b> — Ngày: <b>{studentInfo.exam_date}</b>
+              </div>
+              <div>
+                Số câu: <b>{questions.length}</b> — Đã chọn: <b>{totalSelected}</b>
+              </div>
             </div>
             <button className="btn secondary" onClick={reset}>
               Thoát
@@ -135,6 +213,10 @@ export default function App() {
           <div className="row space">
             <div>
               <h2>Kết quả</h2>
+              <div className="muted">
+                SV: <b>{studentInfo.student_id}</b> — <b>{studentInfo.full_name}</b> — Lớp:{" "}
+                <b>{studentInfo.class_name}</b> — Ngày: <b>{studentInfo.exam_date}</b>
+              </div>
               <div className="muted">
                 Đúng: <b>{result.correct_count}</b> / {result.total_questions} — Điểm:{" "}
                 <b>{result.score}</b> / 10
@@ -199,4 +281,3 @@ export default function App() {
     </div>
   );
 }
-

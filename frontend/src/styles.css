@@ -34,6 +34,35 @@ body {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
+.form {
+  margin: 12px 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13px;
+  color: #374151;
+}
+
+.field input {
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  outline: none;
+}
+
+.field input:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
 .row {
   display: flex;
   gap: 8px;
@@ -51,6 +80,11 @@ body {
   padding: 10px 14px;
   border-radius: 10px;
   cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn.secondary {
@@ -126,3 +160,8 @@ body {
   margin-top: 16px;
 }
 
+@media (max-width: 700px) {
+  .form {
+    grid-template-columns: 1fr;
+  }
+}
